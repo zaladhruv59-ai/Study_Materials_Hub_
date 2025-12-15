@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Student Study Materials</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --card: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #60a5fa;
+      --accent2: #34d399;
+      --danger: #f87171;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #0b1022 0%, #0f172a 100%);
+      color: var(--text);
+    }
+    header {
+      padding: 20px 24px; border-bottom: 1px solid #23314f; background: rgba(17,24,39,0.6);
+      backdrop-filter: blur(6px); position: sticky; top: 0; z-index: 10;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: radial-gradient(circle at 30% 30%, #60a5fa, #8b5cf6 70%);
+      box-shadow: 0 6px 20px rgba(96,165,250,0.35);
+    }
+    .brand h1 { font-size: 20px; margin: 0; letter-spacing: 0.3px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .grid {
+      display: grid; gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .panel {
+      background: var(--panel); border: 1px solid #22304c; border-radius: 14px; padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    .panel h2 { margin: 0 0 12px 0; font-size: 18px; }
+    .toolbar {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;
+    }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tab {
+      padding: 8px 12px; border: 1px solid #23314f; border-radius: 999px;
+      color: var(--muted); background: #141b2c; cursor: pointer; font-size: 13px;
+    }
+    .tab.active { color: #fff; border-color: var(--accent); box-shadow: 0 0 0 1px rgba(96,165,250,0.3) inset; }
+    .search { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #23314f; background: #0f1a2f; color: var(--text); }
+    .select, .input {
+      width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #23314f; background: #0f1a2f; color: var(--text);
+    }
+    .btn {
+      padding: 10px 14px; border: none; border-radius: 10px; cursor: pointer;
+      background: linear-gradient(90deg, #60a5fa, #34d399); color: #081225; font-weight: 600;
+      box-shadow: 0 8px 20px rgba(52,211,153,0.25);
+    }
+    .btn.secondary { background: #16223b; color: var(--text); border: 1px solid #23314f; }
+    .materials { display: grid; gap: 12px; }
+    .card {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+      padding: 12px; border-radius: 12px; background: var(--card); border: 1px solid #22304c;
+    }
+    .badge {
+      font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid #2a3a5f; color: var(--muted);
+      background: #0f1a2f;
+    }
+    .title { font-weight: 600; }
+    .meta { font-size: 12px; color: var(--muted); }
+    .link { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .empty { color: var(--muted); text-align: center; padding: 28px; border: 1px dashed #23314f; border-radius: 12px; background: #0f1a2f; }
+    .actions { display: flex; gap: 10px; }
+    .danger { color: var(--danger); background: #1a1517; border: 1px solid #5a2b33; }
+    footer { color: var(--muted); text-align: center; padding: 24px; }
+    .small { font-size: 12px; }
+    @media (max-width: 640px) {
+      .toolbar { grid-template-columns: 1fr; }
+      .card { grid-template-columns: 1fr; gap: 6px; }
+      .actions { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <h1>Study Materials Hub</h1>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <h2>Browse materials</h2>
+      <div class="toolbar">
+        <div class="tabs" id="typeTabs" role="tablist" aria-label="Material type">
+          <button class="tab active" data-type="all">All</button>
+          <button class="tab" data-type="assignment">Assignment</button>
+          <button class="tab" data-type="model-paper">Model paper</button>
+          <button class="tab" data-type="ppt">PPT</button>
+          <button class="tab" data-type="pdf">PDF</button>
+          <button class="tab" data-type="notes">Notes</button>
+          <button class="tab" data-type="other">Other</button>
+        </div>
+        <input id="search" class="search" type="search" placeholder="Search by title, subject, tags…" />
+      </div>
+      <div id="materials" class="materials" aria-live="polite"></div>
+      <div id="emptyState" class="empty" hidden>
+        No materials found. Try changing filters or add new items below.
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Add new material</h2>
+      <form id="addForm">
+        <div class="grid">
+          <div>
+            <label class="small">Title</label>
+            <input class="input" id="title" type="text" placeholder="E.g., Math Assignment 3" required />
+          </div>
+          <div>
+            <label class="small">Subject</label>
+            <input class="input" id="subject" type="text" placeholder="E.g., Mathematics" />
+          </div>
+          <div>
+            <label class="small">Type</label>
+            <select class="select" id="type" required>
+              <option value="assignment">Assignment</option>
+              <option value="model-paper">Model paper</option>
+              <option value="ppt">PPT</option>
+              <option value="pdf">PDF</option>
+              <option value="notes">Notes</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="small">Grade/semester</label>
+            <input class="input" id="grade" type="text" placeholder="E.g., Sem 3" />
+          </div>
+          <div>
+            <label class="small">Tags (comma-separated)</label>
+            <input class="input" id="tags" type="text" placeholder="E.g., algebra, calculus" />
+          </div>
+          <div>
+            <label class="small">Link to file (URL)</label>
+            <input class="input" id="url" type="url" placeholder="Paste Google Drive/OneDrive link" required />
+          </div>
+        </div>
+        <div style="margin-top: 12px; display: flex; gap: 10px;">
+          <button class="btn" type="submit">Add material</button>
+          <button class="btn secondary" type="button" id="importBtn">Import from CSV</button>
+          <button class="btn secondary" type="button" id="exportBtn">Export to CSV</button>
+          <button class="btn danger" type="button" id="clearBtn">Clear all</button>
+        </div>
+        <p class="small" style="margin-top:8px;">
+          Tip: Upload your PPT/PDF to Google Drive, OneDrive, or your server, then paste the share link here.
+        </p>
+      </form>
+    </section>
+
+    <footer>
+      <p class="small">Saved locally in your browser. Publish by uploading this HTML file to any web host.</p>
+    </footer>
+  </main>
+
+  <script>
+    // Simple localStorage-backed data store
+    const STORE_KEY = 'study-materials-v1';
+
+    const state = {
+      items: [],
+      filterType: 'all',
+      searchQuery: ''
+    };
+
+    // Elements
+    const listEl = document.getElementById('materials');
+    const emptyEl = document.getElementById('emptyState');
+    const tabsEl = document.getElementById('typeTabs');
+    const searchEl = document.getElementById('search');
+    const formEl = document.getElementById('addForm');
+    const titleEl = document.getElementById('title');
+    const subjectEl = document.getElementById('subject');
+    const typeEl = document.getElementById('type');
+    const gradeEl = document.getElementById('grade');
+    const tagsEl = document.getElementById('tags');
+    const urlEl = document.getElementById('url');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    // Load initial data
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        state.items = raw ? JSON.parse(raw) : sampleSeed();
+      } catch (e) {
+        state.items = sampleSeed();
+      }
+    }
+    function save() {
+      localStorage.setItem(STORE_KEY, JSON.stringify(state.items));
+    }
+
+    // Sample starting items
+    function sampleSeed() {
+      return [
+        {
+          id: uid(), title: 'Chemistry PPT: Organic Basics', subject: 'Chemistry',
+          type: 'ppt', grade: 'Sem 2', tags: ['organic', 'ppt'],
+          url: 'https://example.com/chemistry-basics.pptx', createdAt: Date.now()
+        },
+        {
+          id: uid(), title: 'Math Assignment 1: Algebra', subject: 'Mathematics',
+          type: 'assignment', grade: 'Sem 1', tags: ['algebra', 'assignment'],
+          url: 'https://example.com/math-assignment-1.pdf', createdAt: Date.now()
+        },
+        {
+          id: uid(), title: 'Model Paper: Physics Midterm', subject: 'Physics',
+          type: 'model-paper', grade: 'Sem 3', tags: ['model', 'midterm'],
+          url: 'https://example.com/physics-model-paper.pdf', createdAt: Date.now()
+        }
+      ];
+    }
+
+    // Utilities
+    function uid() { return Math.random().toString(36).slice(2, 10); }
+    function sanitize(str) { return String(str || '').trim(); }
+    function toCSV(items) {
+      const header = ['title','subject','type','grade','tags','url'];
+      const rows = items.map(i =>
+        [i.title, i.subject, i.type, i.grade, i.tags.join(';'), i.url]
+          .map(val => `"${String(val).replace(/"/g,'""')}"`).join(',')
+      );
+      return header.join(',') + '\n' + rows.join('\n');
+    }
+    function fromCSV(text) {
+      const lines = text.split(/\r?\n/).filter(Boolean);
+      const out = [];
+      const header = lines.shift();
+      lines.forEach(line => {
+        // naive CSV parser for quoted fields
+        const cells = [];
+        let cur = ''; let inQ = false;
+        for (let i=0; i<line.length; i++) {
+          const ch = line[i];
+          if (ch === '"' ) {
+            if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+            else { inQ = !inQ; }
+          } else if (ch === ',' && !inQ) {
+            cells.push(cur); cur = '';
+          } else cur += ch;
+        }
+        cells.push(cur);
+        const [title, subject, type, grade, tags, url] = cells.map(c => c.trim());
+        out.push({
+          id: uid(), title, subject, type, grade,
+          tags: (tags || '').split(';').filter(Boolean),
+          url, createdAt: Date.now()
+        });
+      });
+      return out;
+    }
+
+    // Render
+    function render() {
+      const items = state.items
+        .filter(i => state.filterType === 'all' ? true : i.type === state.filterType)
+        .filter(i => {
+          const q = state.searchQuery.toLowerCase();
+          if (!q) return true;
+          const blob = [i.title, i.subject, i.grade, i.tags.join(' ')].join(' ').toLowerCase();
+          return blob.includes(q);
+        })
+        .sort((a,b) => b.createdAt - a.createdAt);
+
+      listEl.innerHTML = '';
+      if (!items.length) {
+        emptyEl.hidden = false;
+        return;
+      } else emptyEl.hidden = true;
+
+      items.forEach(i => {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        const badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = labelForType(i.type);
+        card.appendChild(badge);
+
+        const info = document.createElement('div');
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = i.title;
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.textContent = [i.subject || '—', i.grade || '—', i.tags.join(', ') || '—'].join(' • ');
+        info.appendChild(title);
+        info.appendChild(meta);
+        card.appendChild(info);
+
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+
+        const open = document.createElement('a');
+        open.className = 'link';
+        open.href = i.url;
+        open.target = '_blank';
+        open.rel = 'noopener';
+        open.textContent = 'Open';
+        actions.appendChild(open);
+
+        const del = document.createElement('button');
+        del.className = 'btn danger';
+        del.textContent = 'Delete';
+        del.addEventListener('click', () => {
+          state.items = state.items.filter(x => x.id !== i.id);
+          save(); render();
+        });
+        actions.appendChild(del);
+
+        card.appendChild(actions);
+        listEl.appendChild(card);
+      });
+    }
+
+    function labelForType(type) {
+      switch (type) {
+        case 'assignment': return 'Assignment';
+        case 'model-paper': return 'Model paper';
+        case 'ppt': return 'PPT';
+        case 'pdf': return 'PDF';
+        case 'notes': return 'Notes';
+        default: return 'Other';
+      }
+    }
+
+    // Events
+    tabsEl.addEventListener('click', (e) => {
+      const b = e.target.closest('.tab');
+      if (!b) return;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      b.classList.add('active');
+      state.filterType = b.dataset.type;
+      render();
+    });
+
+    searchEl.addEventListener('input', (e) => {
+      state.searchQuery = e.target.value;
+      render();
+    });
+
+    formEl.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newItem = {
+        id: uid(),
+        title: sanitize(titleEl.value),
+        subject: sanitize(subjectEl.value),
+        type: sanitize(typeEl.value),
+        grade: sanitize(gradeEl.value),
+        tags: sanitize(tagsEl.value).split(',').map(t => t.trim()).filter(Boolean),
+        url: sanitize(urlEl.value),
+        createdAt: Date.now()
+      };
+      if (!newItem.title || !newItem.url) {
+        alert('Please add a title and a file URL.');
+        return;
+      }
+      state.items.unshift(newItem);
+      save(); render();
+      formEl.reset();
+      typeEl.value = 'assignment';
+    });
+
+    exportBtn.addEventListener('click', () => {
+      const csv = toCSV(state.items);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'materials.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    importBtn.addEventListener('click', async () => {
+      const picker = document.createElement('input');
+      picker.type = 'file';
+      picker.accept = '.csv,text/csv';
+      picker.addEventListener('change', async () => {
+        const file = picker.files[0];
+        if (!file) return;
+        const text = await file.text();
+        const imported = fromCSV(text);
+        state.items = imported.concat(state.items);
+        save(); render();
+      });
+      picker.click();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if (confirm('Clear all saved materials? This cannot be undone.')) {
+        state.items = [];
+        save(); render();
+      }
+    });
+
+    // Init
+    load(); render();
+  </script>
+</body>
+</html>
+
